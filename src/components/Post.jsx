@@ -8,10 +8,9 @@ import styles from './Post.module.css';
 
 export function Post({author, publishedAt, content}){
 
-    const [comments, setComments] = useState([
-        
-    ])
+    const [comments, setComments] = useState([])
     const [newCommentText, setNewCommentText] = useState('');
+    const isNewCommentEmpty = newCommentText.length == 0;
     const publishedDateFormatted = format(publishedAt, "d 'de' LLLL 'às' HH:mm'h'", {
         locale: ptBR,
     });
@@ -26,6 +25,7 @@ export function Post({author, publishedAt, content}){
         setNewCommentText('');
     }
     function handleNewCommentChange(){
+        event.target.setCustomValidity('')
         setNewCommentText(event.target.value);
     }
 
@@ -34,6 +34,9 @@ export function Post({author, publishedAt, content}){
             return comment != commentToDelete;
         })
         setComments(commentsWithoutDeletedOne);
+    }
+    function handleNewCommentInvalid(){
+        event.target.setCustomValidity('Este campo é obrigatório')
     }
     return (
         <article className={styles.post}>
@@ -58,9 +61,16 @@ export function Post({author, publishedAt, content}){
             </div>
             <form onSubmit = {handleCreateNewComment} className={styles.commentForm}>
                 <strong>Deixe seu feedback</strong>
-                <textarea placeholder='Deixe um comentário' name="comment" onChange={handleNewCommentChange} value={newCommentText} />
+                <textarea 
+                    placeholder='Deixe um comentário' 
+                    name="comment" 
+                    onChange={handleNewCommentChange} 
+                    value={newCommentText} 
+                    onInvalid={handleNewCommentInvalid}
+                    required
+                />
                 <footer>
-                    <button type="submit">Comentário</button>
+                    <button type="submit" disabled={isNewCommentEmpty}>Comentário</button>
                 </footer>
             </form>
             <div className={styles.commentList}>
