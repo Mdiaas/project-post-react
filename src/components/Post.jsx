@@ -1,41 +1,78 @@
+import { format, formatDistanceToNow } from 'date-fns'
+import ptBR from 'date-fns/locale/pt-BR';
+import { useState } from 'react';
+
 import { Avatar } from './Avatar';
 import { Comment } from './Comment';
 import styles from './Post.module.css';
-export function Post(){
+
+export function Post({author, publishedAt, content}){
+
+    const [comments, setComments] = useState([
+        
+    ])
+    const [newCommentText, setNewCommentText] = useState('');
+    const publishedDateFormatted = format(publishedAt, "d 'de' LLLL 'às' HH:mm'h'", {
+        locale: ptBR,
+    });
+    const publishedDateRelativeToNow = formatDistanceToNow(publishedAt, {
+        locale: ptBR,
+        addSuffix: true,
+    })
+
+    function handleCreateNewComment(){
+        event.preventDefault();
+        setComments([...comments, newCommentText]);
+        setNewCommentText('');
+    }
+    function handleNewCommentChange(){
+        setNewCommentText(event.target.value);
+    }
+
+    function deleteComment(commentToDelete){
+        const commentsWithoutDeletedOne =  comments.filter(comment => {
+            return comment != commentToDelete;
+        })
+        setComments(commentsWithoutDeletedOne);
+    }
     return (
         <article className={styles.post}>
             <header>
                 <div className={styles.author}>
-                    <Avatar src="https://github.com/mdiaas.png"/>
+                    <Avatar src={author.avatarUrl}/>
                     <div className={styles.authorInfo}>
-                        <strong>Mateus Dias</strong>
-                        <span>Web Developer</span>
+                        <strong>{author.name}</strong>
+                        <span>{author.role}</span>
                     </div>
                 </div>    
-                <time title = "15 de dezembro de 2022 as 11:45" dateTime="2022-12-15 11:45:00">Publicado há 1h</time>
+                <time title = {publishedDateFormatted} dateTime={publishedAt.toISOString()}>{publishedDateRelativeToNow}</time>
             </header>
             <div className={styles.content}>
-                <p>Eai galera</p>
-                <p>Estou começando com react e react native</p>
-                <p>Espero que gostem desse projeto, estou me dedicando bastante</p>
-                <p><a href="#">Veja mais em mateus.dias.project</a></p>
-                <p>
-                    <a href="#">#nlw</a> { ' ' }
-                    <a href="#">#newProject</a> { ' ' }
-                    <a href="#">#greatJob</a> { ' ' }
-                </p>
+                {content.map(line =>{
+                    if(line.type == 'paragraph'){
+                        return <p key={line.content}>{line.content}</p>
+                    }else if(line.type == 'link'){
+                        return <p key={line.content}><a href="#">{line.content}</a></p>
+                    }
+                })}
             </div>
-            <form className={styles.commentForm}>
+            <form onSubmit = {handleCreateNewComment} className={styles.commentForm}>
                 <strong>Deixe seu feedback</strong>
-                <textarea placeholder='Deixe um comentário'/>
+                <textarea placeholder='Deixe um comentário' name="comment" onChange={handleNewCommentChange} value={newCommentText} />
                 <footer>
                     <button type="submit">Comentário</button>
                 </footer>
             </form>
             <div className={styles.commentList}>
-                <Comment />
-                <Comment />
-                <Comment />
+                {comments.map(comment => {
+                    return (
+                        <Comment 
+                            key={comment} 
+                            content={comment} 
+                            onDeleteComment={deleteComment}
+                        />
+                    )
+                })}
             </div>
         </article>
     )
